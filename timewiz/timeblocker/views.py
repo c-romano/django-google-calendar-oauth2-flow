@@ -1,10 +1,9 @@
 import datetime
 import json
 from django.http.request import HttpRequest
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect, JsonResponse
-from django.shortcuts import redirect
 from google.auth import credentials
 
 import requests
@@ -12,12 +11,17 @@ import requests
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 
+from google.oauth2 import id_token
+from google.auth.transport import requests
+
+from django.contrib.auth import authenticate, login
+
 from googleapiclient.discovery import build
 
 # Create your views here.
 
 
-scopes = ['https://www.googleapis.com/auth/calendar', 'https://www.googleapis.com/auth/userinfo.profile']
+scopes = ['https://www.googleapis.com/auth/calendar', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', 'openid']
 
 flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(r"C:\Users\c-o-n\Coding\Projects\time-wiz\client_secret.json", scopes=scopes)
 
@@ -39,14 +43,20 @@ def googleredirect(request: HttpRequest):
     authorization_response = request.get_full_path()
     code = request.GET.get('code')
     token = flow.fetch_token(authorization_response=authorization_response)
-    print("the code is:" + code)
-    print("the access token is:" + str(token))
     
     credentials = flow.credentials
 
     print("credentials are: " + str(credentials))
 
     calendar = build('calendar', 'v3', credentials=credentials)
+
+    userid = id_token.verify_oauth2_token(credentials.id_token, requests.Request(), credentials.client_id)
+
+    print("\nuserid contents:")
+    for item in userid:
+        print(item + str(userid[item]))
+
+    print("\n \n")
 
     print("was able to get to this point without causing mayhem.")
 

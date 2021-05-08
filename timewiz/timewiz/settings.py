@@ -108,6 +108,9 @@ AUTHENTICATION_BACKENDS = [
 
     # `allauth` specific authentication methods, such as login by e-mail
     'allauth.account.auth_backends.AuthenticationBackend',
+
+    # from discord tutorial, allows for login via google authentication?
+    'timeblocker.auth.GoogleAuthenticationBackend'
 ]
 
 GOOGLE_CLIENT_SECRET_FILE = os.path.join(BASE_DIR, 'credentials.json')
