@@ -43,7 +43,6 @@ def googleredirect(request: HttpRequest):
     authorization_response = request.get_full_path()
     code = request.GET.get('code')
     token = flow.fetch_token(authorization_response=authorization_response)
-    
     credentials = flow.credentials
 
     print("credentials are: " + str(credentials))
@@ -51,6 +50,10 @@ def googleredirect(request: HttpRequest):
     calendar = build('calendar', 'v3', credentials=credentials)
 
     userid = id_token.verify_oauth2_token(credentials.id_token, requests.Request(), credentials.client_id)
+    
+    print("\nid is: "+userid['sub'])
+
+    authenticate(request, user=userid)
 
     print("\nuserid contents:")
     for item in userid:

@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #'timeblocker.apps.TimeblockerConfig',
     'timeblocker',
 
     # from allauth website (duplicatepyts removed manually):
@@ -103,14 +104,14 @@ DATABASES = {
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
 
 AUTHENTICATION_BACKENDS = [
+    # from discord tutorial, allows for login via google authentication?
+    'timeblocker.auth.GoogleAuthenticationBackend',
+    
     # Needed to login by username in Django admin, regardless of `allauth`
-    'django.contrib.auth.backends.ModelBackend',
+    #'django.contrib.auth.backends.ModelBackend',
 
     # `allauth` specific authentication methods, such as login by e-mail
-    'allauth.account.auth_backends.AuthenticationBackend',
-
-    # from discord tutorial, allows for login via google authentication?
-    'timeblocker.auth.GoogleAuthenticationBackend'
+    #'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 GOOGLE_CLIENT_SECRET_FILE = os.path.join(BASE_DIR, 'credentials.json')
