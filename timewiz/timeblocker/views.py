@@ -15,6 +15,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
 
 from googleapiclient.discovery import build
 
@@ -35,11 +36,18 @@ authorization_url, state = flow.authorization_url(
 
 def index(request):
     return HttpResponse("Hello there good buddy.")
-    
+
+@login_required(login_url="/timeblocker/googlepermission")
+def get_authenticated_user(request: HttpRequest):
+    return JsonResponse({ "msg": "Authenticated" })
+
 def googlepermission(request):
     return redirect(authorization_url)
 
 def googleredirect(request: HttpRequest):
+    print("\n")
+    print(request.get_full_path())
+    print("\n")
     authorization_response = request.get_full_path()
     code = request.GET.get('code')
     token = flow.fetch_token(authorization_response=authorization_response)
@@ -53,7 +61,12 @@ def googleredirect(request: HttpRequest):
     
     print("\nid is: "+userid['sub'])
 
-    authenticate(request, user=userid)
+    google_user = authenticate(request, user=userid)
+    
+    google_user = list(google_user).pop()
+
+    print("\n google_user: ")
+    print(google_user)
 
     print("\nuserid contents:")
     for item in userid:
