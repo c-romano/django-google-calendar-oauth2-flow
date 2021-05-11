@@ -13,3 +13,9 @@ class GoogleAuthenticationBackend(BaseBackend):
             print(new_user)
             return new_user
         return find_user
+
+    def get_user(self, user_id):
+        try:
+            return GoogleUser.objects.get(pk=user_id)
+        except GoogleUser.DoesNotExist:
+            return None

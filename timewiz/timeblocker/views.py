@@ -39,7 +39,13 @@ def index(request):
 
 @login_required(login_url="/timeblocker/googlepermission")
 def get_authenticated_user(request: HttpRequest):
-    return JsonResponse({ "msg": "Authenticated" })
+    print(request.user)
+    user = request.user
+    return JsonResponse({
+        "id": user.id,
+        "name": user.name,
+        "email": user.email
+     })
 
 def googlepermission(request):
     return redirect(authorization_url)
@@ -68,6 +74,8 @@ def googleredirect(request: HttpRequest):
     print("\n google_user: ")
     print(google_user)
 
+    login(request, google_user)
+
     print("\nuserid contents:")
     for item in userid:
         print(item + str(userid[item]))
@@ -93,4 +101,4 @@ def googleredirect(request: HttpRequest):
 
     calendar.close()
 
-    return JsonResponse({"dude":"wheres my car"})
+    return redirect('/timeblocker/auth/user')
