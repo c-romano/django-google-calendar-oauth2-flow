@@ -116,6 +116,8 @@ AUTHENTICATION_BACKENDS = [
 
 GOOGLE_CLIENT_SECRET_FILE = os.path.join(BASE_DIR, 'credentials.json')
 
+GOOGLE_OAUTH2_CLIENT_SECRETS_JSON = r"C:\Users\c-o-n\Coding\Projects\time-wiz\client_secret.json"
+
 GOOGLE_AUTH_SCOPES = [
     # The default ones that were added by the django-google-api
     'https://www.googleapis.com/auth/userinfo.email',

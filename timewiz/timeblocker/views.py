@@ -19,6 +19,10 @@ from django.contrib.auth.decorators import login_required
 
 from googleapiclient.discovery import build
 
+from oauth2client.contrib.django_util.storage import DjangoORMStorage
+
+from .models import GoogleUser
+
 # Create your views here.
 
 
@@ -35,6 +39,10 @@ authorization_url, state = flow.authorization_url(
 )
 
 def index(request):
+    """ THIS IS BROKEN RN:
+    storage = DjangoORMStorage(GoogleUser, 'id', request.user, 'credentials')
+    credential = storage.get()
+    print(credential) """
     return HttpResponse("Hello there good buddy.")
 
 @login_required(login_url="/timeblocker/googlepermission")
@@ -55,49 +63,40 @@ def googleredirect(request: HttpRequest):
     print(request.get_full_path())
     print("\n")
     authorization_response = request.get_full_path()
-    code = request.GET.get('code')
+    # code = request.GET.get('code')
     token = flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
 
-    print("credentials are: " + str(credentials))
+    print("\ncredentials are: ")
+    for item in credentials:
+        print(item)
+    print("\n")
 
-    calendar = build('calendar', 'v3', credentials=credentials)
+    # calendar = build('calendar', 'v3', credentials=credentials)
 
+    # this line decrypts the user id from google
     userid = id_token.verify_oauth2_token(credentials.id_token, requests.Request(), credentials.client_id)
-    
-    print("\nid is: "+userid['sub'])
 
     google_user = authenticate(request, user=userid)
     
     google_user = list(google_user).pop()
 
-    print("\n google_user: ")
-    print(google_user)
+    # this was a test to see what the googleuser object looked like
+    # print("\n google_user: ")
+    # print(google_user)
 
     login(request, google_user)
 
-    print("\nuserid contents:")
-    for item in userid:
-        print(item + str(userid[item]))
+    # this was a test to see what the userid contained
+    # print("\nuserid contents:")
+    # for item in userid:
+    #   print(item + str(userid[item]))
 
-    print("\n \n")
-
-    print("was able to get to this point without causing mayhem.")
-
-    now = datetime.datetime.utcnow().isoformat() + 'Z'
-
-    print("Got to this point without any issues!\n")
-
-    test3events = calendar.events().list(calendarId='primary', timeMin=now,
-    maxResults=3, singleEvents=True, orderBy='startTime').execute()
-    
-    next3events = test3events.get('items', [])
-
-    print("\n the next 3 events are:\n")
-
-    for event in next3events:
-        print(event)
-        print("\n")
+    # This tested getting items from the calendar service object. It will probably not be here.
+    # now = datetime.datetime.utcnow().isoformat() + 'Z'
+    # test3events = calendar.events().list(calendarId='primary', timeMin=now,
+    # maxResults=3, singleEvents=True, orderBy='startTime').execute()
+    # next3events = test3events.get('items', [])
 
     calendar.close()
 
