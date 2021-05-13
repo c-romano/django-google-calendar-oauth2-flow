@@ -43,6 +43,19 @@ def index(request):
     storage = DjangoORMStorage(GoogleUser, 'id', request.user, 'credentials')
     credential = storage.get()
     print(credential) """
+    user = request.user
+    user_credentials = google.oauth2.credentials.Credentials(
+        token=user.token,
+        refresh_token=user.refresh_token,
+        id_token=user.id_token,
+        token_uri=user.token_uri,
+        client_id=user.client_id,
+        client_secret=user.client_secret,
+        default_scopes=user.default_scopes
+    )
+
+    print('\n user token is',user_credentials.token)
+
     return HttpResponse("Hello there good buddy.")
 
 @login_required(login_url="/timeblocker/googlepermission")
@@ -66,11 +79,7 @@ def googleredirect(request: HttpRequest):
     # code = request.GET.get('code')
     token = flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
-
-    print("\ncredentials are: ")
-    for item in credentials:
-        print(item)
-    print("\n")
+    
 
     # calendar = build('calendar', 'v3', credentials=credentials)
 
@@ -81,11 +90,22 @@ def googleredirect(request: HttpRequest):
     
     google_user = list(google_user).pop()
 
+
     # this was a test to see what the googleuser object looked like
     # print("\n google_user: ")
     # print(google_user)
 
     login(request, google_user)
+
+    user = request.user
+
+    user.token = credentials.token
+    user.refresh_token = credentials.refresh_token
+    user.id_token = credentials.id_token
+    user.token_uri = credentials.token_uri
+    user.client_id = credentials.client_id
+    user.client_secret = credentials.client_secret
+    user.default_scopes = credentials.default_scopes
 
     # this was a test to see what the userid contained
     # print("\nuserid contents:")
@@ -98,6 +118,6 @@ def googleredirect(request: HttpRequest):
     # maxResults=3, singleEvents=True, orderBy='startTime').execute()
     # next3events = test3events.get('items', [])
 
-    calendar.close()
+    # calendar.close()
 
     return redirect('/timeblocker/auth/user')
