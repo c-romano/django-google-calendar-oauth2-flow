@@ -81,14 +81,15 @@ def googleredirect(request: HttpRequest):
     credentials = flow.credentials
     
 
-    # calendar = build('calendar', 'v3', credentials=credentials)
+    calendar = build('calendar', 'v3', credentials=credentials)
 
     # this line decrypts the user id from google
     userid = id_token.verify_oauth2_token(credentials.id_token, requests.Request(), credentials.client_id)
 
     google_user = authenticate(request, user=userid)
     
-    google_user = list(google_user).pop()
+    # commented out as this is now taken care of in authenticate fxn
+    # google_user = list(google_user).pop()
 
 
     # this was a test to see what the googleuser object looked like
@@ -113,11 +114,18 @@ def googleredirect(request: HttpRequest):
     #   print(item + str(userid[item]))
 
     # This tested getting items from the calendar service object. It will probably not be here.
-    # now = datetime.datetime.utcnow().isoformat() + 'Z'
-    # test3events = calendar.events().list(calendarId='primary', timeMin=now,
-    # maxResults=3, singleEvents=True, orderBy='startTime').execute()
-    # next3events = test3events.get('items', [])
+    
+    """
+    now = datetime.datetime.utcnow().isoformat() + 'Z'
+    test3events = calendar.events().list(calendarId='primary', timeMin=now,
+    maxResults=3, singleEvents=True, orderBy='startTime').execute()
+    next3events = test3events.get('items', [])
 
+    for item in next3events:
+        print("\n")
+        print(item)
+    """
+    
     # calendar.close()
 
     return redirect('/timeblocker/auth/user')

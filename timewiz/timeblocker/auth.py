@@ -12,7 +12,7 @@ class GoogleAuthenticationBackend(BaseBackend):
             new_user = GoogleUser.objects.create_new_google_user(user)
             print(new_user)
             return new_user
-        return find_user
+        return list(find_user).pop()
 
     def get_user(self, user_id):
         try:
