@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect
 
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect, JsonResponse
 from google.auth import credentials
+from pyasn1.type.univ import Null
 
 import requests
 
@@ -19,9 +20,8 @@ from django.contrib.auth.decorators import login_required
 
 from googleapiclient.discovery import build
 
-from oauth2client.contrib.django_util.storage import DjangoORMStorage
-
 from .models import GoogleUser
+from .managers import GoogleUserOAuth2Manager
 
 # Create your views here.
 
@@ -43,7 +43,20 @@ def index(request):
     storage = DjangoORMStorage(GoogleUser, 'id', request.user, 'credentials')
     credential = storage.get()
     print(credential) """
+    user_validated = False
+    
     user = request.user
+    
+    print("refresh token is:")
+    print(user.refresh_token)
+
+    if user.refresh_token != None:
+        print("The user is validated!")
+        user_validated = True
+    else:
+        print("User isn't validated!")
+        return redirect('/timeblocker/googlepermission')
+    
     user_credentials = google.oauth2.credentials.Credentials(
         token=user.token,
         refresh_token=user.refresh_token,
@@ -54,9 +67,37 @@ def index(request):
         default_scopes=user.default_scopes
     )
 
-    print('\n user token is',user_credentials.token)
+    if not user_credentials.valid:
+        if user_validated:
+            user_credentials.refresh(user)
 
-    return HttpResponse("Hello there good buddy.")
+    calendar = build('calendar', 'v3', credentials=user_credentials)
+
+    now = datetime.datetime.utcnow().isoformat() + 'Z'
+    
+    test3events = calendar.events().list(calendarId='primary', timeMin=now,
+    maxResults=3, singleEvents=True, orderBy='startTime').execute()
+    
+    next3events = test3events.get('items', [])
+
+    calendar.close()
+
+    # This tested getting items from the calendar service object. It will probably not be here.
+    
+    """ TESTS TO SEE THE NEXT ITEMS IN THE CALENDAR
+    now = datetime.datetime.utcnow().isoformat() + 'Z'
+    test3events = calendar.events().list(calendarId='primary', timeMin=now,
+    maxResults=3, singleEvents=True, orderBy='startTime').execute()
+    next3events = test3events.get('items', [])
+
+    for item in next3events:
+        print("\n")
+        print(item)
+    
+    calendar.close()
+    """
+
+    return HttpResponse("Hello there.")
 
 @login_required(login_url="/timeblocker/googlepermission")
 def get_authenticated_user(request: HttpRequest):
@@ -99,33 +140,26 @@ def googleredirect(request: HttpRequest):
     login(request, google_user)
 
     user = request.user
+    
+    # this references managers.py to update the credentials in the DB
+    GoogleUser.objects.update_google_creds(user.id, credentials)
 
-    user.token = credentials.token
-    user.refresh_token = credentials.refresh_token
-    user.id_token = credentials.id_token
-    user.token_uri = credentials.token_uri
-    user.client_id = credentials.client_id
-    user.client_secret = credentials.client_secret
-    user.default_scopes = credentials.default_scopes
+    """ THIS PRINTS ALL THE ITEMS IN CREDENTIALS OBJECT
+    print(
+        "\nCredentials are: \n",
+        credentials.token, "\n",
+        credentials.refresh_token, "\n",
+        credentials.id_token, "\n",
+        credentials.token_uri, "\n",
+        credentials.client_id, "\n",
+        credentials.client_secret, "\n",
+        credentials.default_scopes, "\n"
+        )
+    """
 
     # this was a test to see what the userid contained
     # print("\nuserid contents:")
     # for item in userid:
     #   print(item + str(userid[item]))
-
-    # This tested getting items from the calendar service object. It will probably not be here.
-    
-    """
-    now = datetime.datetime.utcnow().isoformat() + 'Z'
-    test3events = calendar.events().list(calendarId='primary', timeMin=now,
-    maxResults=3, singleEvents=True, orderBy='startTime').execute()
-    next3events = test3events.get('items', [])
-
-    for item in next3events:
-        print("\n")
-        print(item)
-    """
-    
-    # calendar.close()
 
     return redirect('/timeblocker/auth/user')
