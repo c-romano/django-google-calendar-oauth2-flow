@@ -73,8 +73,19 @@ def index(request):
 
     calendar = build('calendar', 'v3', credentials=user_credentials)
 
-    now = datetime.datetime.utcnow().isoformat() + 'Z'
-    
+    now = datetime.datetime.utcnow()
+
+    nowFormatted = now.isoformat() + 'Z'
+
+    today = now.date()
+
+    print(today)
+
+    daily_events = []
+
+    # for item in calendar.events().list(calendarId='primary', timeMin=now, orderBy='startTime'):
+
+    """
     test3events = calendar.events().list(calendarId='primary', timeMin=now,
     maxResults=3, singleEvents=True, orderBy='startTime').execute()
     
@@ -84,11 +95,7 @@ def index(request):
 
     # This tested getting items from the calendar service object. It will probably not be here.
     
-    """ TESTS TO SEE THE NEXT ITEMS IN THE CALENDAR
-    now = datetime.datetime.utcnow().isoformat() + 'Z'
-    test3events = calendar.events().list(calendarId='primary', timeMin=now,
-    maxResults=3, singleEvents=True, orderBy='startTime').execute()
-    next3events = test3events.get('items', [])
+    TESTS TO SEE THE NEXT ITEMS IN THE CALENDAR
 
     for item in next3events:
         print("\n")
