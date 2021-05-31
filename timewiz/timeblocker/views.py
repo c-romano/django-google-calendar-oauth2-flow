@@ -79,12 +79,13 @@ def index(request):
 
     today = now.date()
 
-    print(today)
+    todayGoogle = datetime.datetime.combine(today, datetime.datetime.min.time()).isoformat() + 'Z'
 
-    daily_events = []
+    print(todayGoogle)
 
-    # for item in calendar.events().list(calendarId='primary', timeMin=now, orderBy='startTime'):
+    today_single_events = calendar.events().list(calendarId='primary', timeMin=todayGoogle, singleEvents=True, orderBy='startTime').execute()
 
+    
     """
     test3events = calendar.events().list(calendarId='primary', timeMin=now,
     maxResults=3, singleEvents=True, orderBy='startTime').execute()
