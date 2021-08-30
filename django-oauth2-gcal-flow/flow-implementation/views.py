@@ -23,11 +23,10 @@ from googleapiclient.discovery import build
 from .models import GoogleUser
 from .managers import GoogleUserOAuth2Manager
 
-# Create your views here.
-
 scopes = ['https://www.googleapis.com/auth/calendar', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', 'openid']
 
-flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(r"C:\Users\c-o-n\Coding\Projects\time-wiz\client_secret.json", scopes=scopes)
+# add the location of your client secrets file below
+flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(r"ADD FILE PATH HERE", scopes=scopes)
 
 flow.redirect_uri = 'http://localhost:8000/timeblocker/googlepermission/redirect'
 
@@ -51,7 +50,7 @@ def index(request):
         user_validated = True
     else:
         print("User isn't validated!")
-        return redirect('/timeblocker/googlepermission')
+        return redirect('/flow-implementation/googlepermission')
     
     user_credentials = google.oauth2.credentials.Credentials(
         token=user.token,
@@ -93,7 +92,6 @@ def index(request):
     calendar.close()
     
     TESTS TO SEE THE NEXT ITEMS IN THE CALENDAR
-
     for item in next3events:
         print("\n")
         print(item)
@@ -103,7 +101,7 @@ def index(request):
 
     return HttpResponse("Hello there.")
 
-@login_required(login_url="/timeblocker/googlepermission")
+@login_required(login_url="/flow-implementation/googlepermission")
 def get_authenticated_user(request: HttpRequest):
     print(request.user)
     user = request.user
@@ -121,7 +119,7 @@ def googleredirect(request: HttpRequest):
     print(request.get_full_path())
     print("\n")
     authorization_response = request.get_full_path()
-    # code = request.GET.get('code')
+
     token = flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
     
@@ -140,4 +138,4 @@ def googleredirect(request: HttpRequest):
     # this references managers.py to update the credentials in the DB
     GoogleUser.objects.update_google_creds(user.id, credentials)
 
-    return redirect('/timeblocker/auth/user')
+    return redirect('/flow-implementation/auth/user')
